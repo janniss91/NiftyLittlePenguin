@@ -8,7 +8,7 @@ If you don't have Python 3.8 installed, use pyenv to install it.
 
     sudo apt-get install -y make build-essential libssl-dev zlib1g-dev \
     libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev \
-    libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python-openssl
+    libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python3-openssl
 
     curl https://pyenv.run | bash
 
@@ -28,15 +28,15 @@ If you don't have Python 3.8 installed, use pyenv to install it.
 
 Then download poetry and install the dependencies.
 
-    # Download poetry.
+    # Download and install poetry.
     curl -sSL https://install.python-poetry.org | python3 -
 
-    # Add a soft link so that poetry can find the python3 interpreter.
-    ln -s /usr/bin/python3 /usr/bin/python
-
-    # Make sure poetry is on the path and install dependencies
+    # Make sure poetry is on the path by either typing:
     export PATH="/root/.local/bin:$PATH"
-    poetry update
+
+    # ... or typing, depending on what poetry asks you to do:
+    export PATH="/home/your_username/.local/bin:$PATH"
+
     poetry install
 
 ### Docker Build
@@ -46,6 +46,18 @@ To build the project using docker, run the following command:
     make build_container
 
 ## Run
+
+### Run Experimental Notebooks
+
+You can run any of the experimental notebooks from the `notebooks` directory in jupyterlab.
+
+To start jupyterlab, run:
+
+    jupyter lab
+
+Add the niftlittlepenguin kernel to jupyterlab to have access to all dependencies:
+
+    poetry run python3 -m ipykernel install --user --name niftylittlepenguin --display-name "niftylittlepenguin"
 
 ### Run Locally
 

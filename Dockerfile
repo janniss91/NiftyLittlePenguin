@@ -14,6 +14,6 @@ RUN curl -sSL https://install.python-poetry.org | python3 -
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
 # Make sure poetry is on the path and install dependencies
-RUN export PATH="/root/.local/bin:$PATH" && poetry update && poetry install
+RUN export PATH="/root/.local/bin:$PATH" && poetry install
 
 ENTRYPOINT [ "/bin/bash", "entrypoint.sh" ]
