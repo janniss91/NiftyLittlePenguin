@@ -1,14 +1,15 @@
-
+from transformers import BertTokenizerFast
+from niftylittlepenguin.qa.dataset import SQuAD_Dataset
+from niftylittlepenguin.qa.encode_data import SQuADEncoder
 from niftylittlepenguin.qa.read_data import SQuADReader
 from niftylittlepenguin.shared.download import Downloader
 
-# TODO: Add a config file and put these in there.
-TRAIN_URL = "https://rajpurkar.github.io/SQuAD-explorer/dataset/train-v2.0.json"
-DEV_URL = "https://rajpurkar.github.io/SQuAD-explorer/dataset/dev-v2.0.json"
+from niftylittlepenguin.qa.constants import TRAIN_URL
+from niftylittlepenguin.qa.constants import DEV_URL
+from niftylittlepenguin.qa.constants import TRAIN_PATH
+from niftylittlepenguin.qa.constants import DEV_PATH
+from niftylittlepenguin.qa.constants import MODEL
 
-# TODO: Add config file and put this in there? Or should be constant to prevent different download dir?
-TRAIN_PATH = "data/SQuAD/train-v2.0.json"
-DEV_PATH = "data/SQuAD/dev-v2.0.json"
 
 def run():
     # Download the train and dev data.
@@ -24,8 +25,23 @@ def run():
     train_data = train_datareader.qa_instances
     dev_data = dev_datareader.qa_instances
     # NOTE: There are impossible instances that can potentially added if needed or for experimental purposes.
-    # train_plausible_data = train_datareader.imp_instances
-    # dev_plausible_data = dev_datareader.imp_instances
+    # train_imp_data = train_datareader.imp_instances
+    # dev_imp_data = dev_datareader.imp_instances
+
+    tokenizer = BertTokenizerFast.from_pretrained(MODEL)
+
+    train_encoder = SQuADEncoder(tokenizer, "train")
+    dev_encoder = SQuADEncoder(tokenizer, "dev")
+
+    train_samples = train_encoder.batch_encode(train_data)
+    dev_samples = dev_encoder.batch_encode(dev_data)
+
+    train_dataset = SQuAD_Dataset(train_samples, "train")
+    dev_dataset = SQuAD_Dataset(dev_samples, "dev")
+
+    print(len(train_dataset))
+    print(len(dev_dataset))
+
 
 if __name__ == "__main__":
     run()

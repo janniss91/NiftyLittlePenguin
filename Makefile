@@ -5,3 +5,9 @@ build_container:
 
 run_container:
 	docker run -it --rm niftylittlepenguin
+
+test:
+	poetry run pytest -s tests/
+
+format:
+	poetry run black niftylittlepenguin tests
