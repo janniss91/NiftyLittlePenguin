@@ -5,7 +5,7 @@ import torch
 from abc import ABC, abstractmethod
 from tqdm import tqdm
 from transformers import PreTrainedTokenizerFast
-from typing import List, Optional
+from typing import Iterator, List, Optional
 from niftylittlepenguin.qa.read_data import SQuADInstance
 from niftylittlepenguin.qa.offset_mapping import QAOffsetMapper
 from niftylittlepenguin.qa.constants import MAX_LENGTH
@@ -32,6 +32,10 @@ class QADataEncoder(ABC):
     @abstractmethod
     def store_encodings(self):
         raise NotImplementedError
+    
+    @abstractmethod
+    def load_encodings(self):
+        raise NotImplementedError
 
     @abstractmethod
     def batch_encode(self, data: list):
@@ -57,41 +61,81 @@ class SQuADEncoder(QADataEncoder):
         tokenizer: PreTrainedTokenizerFast,
         split: str,
         store_enc: bool = STORE_ENC,
+        store_buckets: bool = True,
+        bucket_size: int = 1000,
     ):
+        # TODO: Remove possibility of storing all data in one file.
         super().__init__(tokenizer, split, store_enc=store_enc)
+        self.store_buckets = store_buckets
         self.enc_path = f"encodings/qa/SQuAD-{split}-encodings.pt"
+        self.enc_bucket_dir = f"encodings/qa/SQuAD-{split}"
+        self.pt_ending = ".pt"
+        self.encoding_buckets = []
+        self.bucket_size = bucket_size
 
     def encodings_exist(self):
         return os.path.exists(self.enc_path)
+    
+    def buckets_exist(self):
+        return os.path.exists(self.enc_bucket_dir) and len(os.listdir(self.enc_bucket_dir)) > 0
 
     def store_encodings(self):
         with open(self.enc_path, "wb") as f:
             torch.save(self.encodings, f)
 
     def load_encodings(self):
+        print("Loading encodings...")
         with open(self.enc_path, "rb") as f:
             self.encodings = torch.load(f)
 
-    def batch_encode(self, data: List[SQuADInstance]):
-        # Invalid encodings (None) are ignored.
-        if self.encodings_exist():
-            print("Encodings already exist. Loading encodings...")
-            self.load_encodings()
-        else:
-            print("Encoding data...")
-            self.encodings = [
-                self.encode(squad_instance)
-                for squad_instance in tqdm(data)
-                if squad_instance is not None
+    def split_encodings(self):
+        if self.encodings:
+            self.encoding_buckets = [
+                self.encodings[i : i + self.bucket_size]
+                for i in range(0, len(self.encodings), self.bucket_size)
             ]
+        else:
+            raise ValueError("Encodings must be loaded before splitting into buckets.")
 
-            if self.store_enc:
-                print("Creating 'encodings/qa' directory...")
+    def store_encoding_buckets(self):
+        print("Storing encoding buckets...")
+        for num, encoding_bucket in enumerate(self.encoding_buckets):
+            bucket_path = os.path.join(self.enc_bucket_dir, str(num) + self.pt_ending)
+            with open(bucket_path, "wb") as f:
+                torch.save(encoding_bucket, f)
+
+    def load_encoding_bucket(self, num: int) -> List[SQuADEncoding]:
+        bucket_path = os.path.join(self.enc_bucket_dir, str(num) + self.pt_ending)
+        with open(bucket_path, "rb") as f:
+            return torch.load(f)
+
+    def get_num_buckets(self) -> int:
+        return len(os.listdir(self.enc_bucket_dir))
+    
+    def get_buckets(self) -> Iterator[List[SQuADEncoding]]:
+        for num in range(self.get_num_buckets()):
+            yield self.load_encoding_bucket(num)
+
+    def batch_encode(self, data: List[SQuADInstance]):
+        print("Encoding data...")
+        self.encodings = [
+            self.encode(squad_instance)
+            for squad_instance in tqdm(data)
+        ]
+        # Remove None values.
+        self.encodings = [encoding for encoding in self.encodings if encoding is not None]
+
+        if self.store_enc:
+            if self.store_buckets:
+                self.split_encodings()
+                print(f"Creating '{os.path.dirname(self.enc_bucket_dir)}' directory...")
+                create_dirs(self.enc_bucket_dir + "/")
+                self.store_encoding_buckets()
+            else:
+                print(f"Creating '{os.path.dirname(self.enc_path)}' directory...")
                 create_dirs(self.enc_path)
                 print("Storing encodings...")
                 self.store_encodings()
-
-        return self.encodings
 
     def encode(self, squad_instance: SQuADInstance) -> Optional[List[SQuADEncoding]]:
         encoded_question = self.tokenizer(
@@ -139,8 +183,8 @@ class SQuADEncoder(QADataEncoder):
             except TypeError:
                 continue
 
-            # If the answer is outside of the model capacity, it is ignored.
-            if end > MAX_LENGTH:
+            # If the answer is outside of the model capacity, the sample is ignored.
+            if end >= MAX_LENGTH:
                 continue
 
             answer_offsets.append((start, end))

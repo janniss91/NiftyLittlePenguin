@@ -1,6 +1,8 @@
 # Model constants
 MODEL = "bert-base-uncased"
 MAX_LENGTH = 512
+PAD_TOKEN = "[PAD]"
+PAD_TOKEN_ID = 0
 
 # SQuAD constants
 SQUAD_DATA_DIR = "data/SQuAD"

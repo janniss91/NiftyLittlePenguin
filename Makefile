@@ -11,3 +11,6 @@ test:
 
 format:
 	poetry run black niftylittlepenguin tests
+
+requirements:
+	poetry export --format=requirements.txt > requirements.txt
