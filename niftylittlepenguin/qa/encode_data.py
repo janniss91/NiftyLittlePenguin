@@ -113,8 +113,12 @@ class SQuADEncoder(QADataEncoder):
     def get_num_buckets(self) -> int:
         return len(os.listdir(self.enc_bucket_dir))
     
-    def get_buckets(self) -> Iterator[List[SQuADEncoding]]:
-        for num in range(self.get_num_buckets()):
+    def get_buckets(self, max_buckets: int = 1_000_000) -> Iterator[List[SQuADEncoding]]:
+        """
+        Max buckets is used to limit the number of buckets that are loaded.
+        The default is 1_000_000, which is always higher than the true number of buckets.
+        """
+        for num in range(min(max_buckets, self.get_num_buckets())):
             yield self.load_encoding_bucket(num)
 
     def batch_encode(self, data: List[SQuADInstance]):

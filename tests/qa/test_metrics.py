@@ -14,7 +14,7 @@ class TestQAMetrics:
         end_gold = torch.tensor([2, 0, 1])
 
         return start_logits, end_logits, start_gold, end_gold
-    
+
     @pytest.fixture
     def metrics_all_wrong(self):
         start_logits = torch.tensor([[0.3, 0.2, 0.5], [0.1, 0.8, 0.1], [0.4, 0.5, 0.1]])

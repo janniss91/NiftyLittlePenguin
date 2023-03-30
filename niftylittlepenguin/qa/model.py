@@ -22,6 +22,12 @@ class LitQABert(pl.LightningModule):
         self.n_train_steps = 0
         self.n_dev_steps = 0
 
+    def forward(self, inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
+        hidden = self.encoder(**inputs).last_hidden_state
+        logits = self.classifier(hidden)
+
+        return logits
+
     def training_step(self, batch: Tuple[Dict[str, torch.Tensor], torch.Tensor], batch_idx: int) -> torch.Tensor:
         loss, accuracies = self._step(batch, "train")
         self.n_train_steps += 1
@@ -37,6 +43,7 @@ class LitQABert(pl.LightningModule):
     def validation_step(self, batch: Tuple[Dict[str, torch.Tensor], torch.Tensor], batch_idx: int) -> torch.Tensor:
         # TODO: Store model checkpoints.
         loss, accuracies = self._step(batch, "dev")
+
         self.n_dev_steps += 1
         self.log(
             "dev_loss", loss, on_epoch=True, prog_bar=True, logger=False
@@ -48,8 +55,7 @@ class LitQABert(pl.LightningModule):
 
     def _step(self, batch: Tuple[Dict[str, torch.Tensor], torch.Tensor], split) -> torch.Tensor:
         inputs, labels = batch
-        hidden = self.encoder(**inputs).last_hidden_state
-        logits = self.classifier(hidden)
+        logits = self(inputs)
 
         # Separate the predictions for start and end.
         start_logits = logits[:, :, 0]
@@ -69,6 +75,7 @@ class LitQABert(pl.LightningModule):
         return loss, accuracies
     
     def on_validation_end(self):
+        print("Total validation accuracy:\n")
         print(self.qa_metrics.final_accuracies())
         
     

@@ -27,12 +27,13 @@ class QADataset(IterableDataset):
 
 class SQuAD_Dataset(QADataset):
     def __init__(
-        self, data_encoder: SQuADEncoder, tokenizer: BertTokenizerFast, split: str
+        self, data_encoder: SQuADEncoder, tokenizer: BertTokenizerFast, split: str, max_buckets: int = 1_000_000
     ):
         super().__init__(data_encoder, tokenizer, split)
+        self.max_buckets = max_buckets
 
     def __iter__(self):
-        for bucket in self.data_encoder.get_buckets():
+        for bucket in self.data_encoder.get_buckets(self.max_buckets):
             for instance in bucket:
                 inputs = {
                     "input_ids": instance.input_ids,
