@@ -15,7 +15,7 @@ from niftylittlepenguin.qa.constants import DEV_URL
 from niftylittlepenguin.qa.constants import TRAIN_PATH
 from niftylittlepenguin.qa.constants import DEV_PATH
 from niftylittlepenguin.qa.constants import MODEL
-from niftylittlepenguin.qa.config import BATCH_SIZE, LOG_INTERVAL, MAX_EPOCHS, TORCH_SEED
+from niftylittlepenguin.qa.config import BATCH_SIZE, LOG_INTERVAL, MAX_EPOCHS, TORCH_SEED, VAL_INTERVAL
 
 
 @profile
@@ -54,7 +54,8 @@ def run():
 
     qa_model = LitQABert()
     device = "gpu" if torch.cuda.is_available() else "cpu"
-    trainer = pl.Trainer(log_every_n_steps=LOG_INTERVAL, max_epochs=MAX_EPOCHS, accelerator=device)
+    # If validation should be done more than once per epoch, the dataset cannot be iterable.
+    trainer = pl.Trainer(log_every_n_steps=LOG_INTERVAL, max_epochs=MAX_EPOCHS, accelerator=device, val_check_interval=VAL_INTERVAL)
     trainer.fit(
         model=qa_model, train_dataloaders=train_loader, val_dataloaders=dev_loader
     )
