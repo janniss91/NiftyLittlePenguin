@@ -1,5 +1,7 @@
 from typing import Tuple
-from niftylittlepenguin.shared.offset_mapping import CharToWordpieceOffsetMapper
+
+from niftylittlepenguin.shared.offset_mapping import \
+    CharToWordpieceOffsetMapper
 
 
 class QAOffsetMapper(CharToWordpieceOffsetMapper):

@@ -18,6 +18,8 @@ ipykernel = "^6.21.1"
 ipython = "^8.9.0"
 jupyterlab = "^3.6.1"
 line-profiler = "^4.0.2"
+isort = "^5.10.1"
+pylint = "^2.15.2"
 
 [tool.poetry.group.dev.dependencies]
 memory-profiler = "^0.61.0"

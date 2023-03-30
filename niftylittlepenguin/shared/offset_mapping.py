@@ -1,5 +1,6 @@
-import torch
 from typing import Optional, Tuple
+
+import torch
 
 
 class CharToWordpieceOffsetMapper:

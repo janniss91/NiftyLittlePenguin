@@ -4,18 +4,15 @@ from memory_profiler import profile
 from torch.utils.data import DataLoader
 from transformers import BertTokenizerFast
 
+from niftylittlepenguin.qa.config import (BATCH_SIZE, LOG_INTERVAL, MAX_EPOCHS,
+                                          TORCH_SEED, VAL_INTERVAL)
+from niftylittlepenguin.qa.constants import (DEV_PATH, DEV_URL, MAX_LENGTH,
+                                             MODEL, TRAIN_PATH, TRAIN_URL)
 from niftylittlepenguin.qa.dataset import SQuAD_Dataset
 from niftylittlepenguin.qa.encode_data import SQuADEncoder
 from niftylittlepenguin.qa.model import LitQABert
 from niftylittlepenguin.qa.read_data import SQuADReader
 from niftylittlepenguin.shared.download import Downloader
-
-from niftylittlepenguin.qa.constants import MAX_LENGTH, TRAIN_URL
-from niftylittlepenguin.qa.constants import DEV_URL
-from niftylittlepenguin.qa.constants import TRAIN_PATH
-from niftylittlepenguin.qa.constants import DEV_PATH
-from niftylittlepenguin.qa.constants import MODEL
-from niftylittlepenguin.qa.config import BATCH_SIZE, LOG_INTERVAL, MAX_EPOCHS, TORCH_SEED, VAL_INTERVAL
 
 
 @profile

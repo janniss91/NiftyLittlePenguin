@@ -1,7 +1,7 @@
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
 import json
 import os
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import List, Optional
 
 from niftylittlepenguin.qa.constants import SQUAD_DATA_DIR

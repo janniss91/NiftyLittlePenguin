@@ -1,15 +1,16 @@
-from dataclasses import dataclass
 import os
-import torch
-
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from typing import Iterator, List, Optional
+
+import torch
 from tqdm import tqdm
 from transformers import PreTrainedTokenizerFast
-from typing import Iterator, List, Optional
-from niftylittlepenguin.qa.read_data import SQuADInstance
-from niftylittlepenguin.qa.offset_mapping import QAOffsetMapper
-from niftylittlepenguin.qa.constants import MAX_LENGTH
+
 from niftylittlepenguin.qa.config import STORE_ENC
+from niftylittlepenguin.qa.constants import MAX_LENGTH
+from niftylittlepenguin.qa.offset_mapping import QAOffsetMapper
+from niftylittlepenguin.qa.read_data import SQuADInstance
 from niftylittlepenguin.shared.utils import create_dirs
 
 

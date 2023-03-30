@@ -1,13 +1,14 @@
 from abc import abstractmethod
 from typing import Dict, List, Tuple
+
 import torch
 import torch.nn.functional as F
 from torch.utils.data import IterableDataset
-from transformers import PreTrainedTokenizerFast
-from transformers import BertTokenizerFast
+from transformers import BertTokenizerFast, PreTrainedTokenizerFast
 
-from niftylittlepenguin.qa.encode_data import QADataEncoder, SQuADEncoder, SQuADEncoding
 from niftylittlepenguin.qa.constants import MAX_LENGTH
+from niftylittlepenguin.qa.encode_data import (QADataEncoder, SQuADEncoder,
+                                               SQuADEncoding)
 
 
 class QADataset(IterableDataset):

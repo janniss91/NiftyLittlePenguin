@@ -1,7 +1,9 @@
 import pytest
 from transformers import BertTokenizerFast
-from niftylittlepenguin.shared.offset_mapping import CharToWordpieceOffsetMapper
+
 from niftylittlepenguin.qa.train import MODEL
+from niftylittlepenguin.shared.offset_mapping import \
+    CharToWordpieceOffsetMapper
 
 
 class TestCharToWordpieceOffsetMapper:

@@ -1,7 +1,9 @@
 from typing import List
-import torch
+
 import pytest
+import torch
 from transformers import BertTokenizerFast
+
 from niftylittlepenguin.qa.encode_data import SQuADEncoder
 from niftylittlepenguin.qa.read_data import SQuADInstance
 from niftylittlepenguin.qa.train import MODEL

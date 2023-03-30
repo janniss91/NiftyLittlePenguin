@@ -1,7 +1,9 @@
 from typing import Dict, Tuple
-import torch
+
 import pytorch_lightning as pl
+import torch
 from transformers import BertModel
+
 from niftylittlepenguin.qa.config import LOG_INTERVAL
 from niftylittlepenguin.qa.constants import MODEL
 from niftylittlepenguin.qa.metrics import QAMetrics
