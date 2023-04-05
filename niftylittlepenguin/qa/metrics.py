@@ -6,7 +6,6 @@ from torchmetrics import Accuracy
 
 class QAMetrics:
     def __init__(self) -> None:
-
         self.all_pred_starts = torch.tensor([])
         self.all_gold_starts = torch.tensor([])
         self.all_pred_ends = torch.tensor([])
@@ -22,7 +21,6 @@ class QAMetrics:
         end_gold: torch.Tensor,
         split: str = "train",
     ) -> Dict[str, int]:
-
         # Shape: (batch_size)
         start_pred = start_logits.argmax(dim=1)
         end_pred = end_logits.argmax(dim=1)
@@ -42,7 +40,7 @@ class QAMetrics:
         }
 
         return output
-    
+
     def accuracy(self, pred: torch.Tensor, gold: torch.Tensor) -> torch.Tensor:
         return (pred == gold).sum() / pred.shape[0]
 
@@ -56,7 +54,13 @@ class QAMetrics:
         both_correct = (starts_pred == starts_gold) * (ends_pred == ends_gold)
         return both_correct.sum() / both_correct.shape[0]
 
-    def compile_outputs(self, start_pred: torch.Tensor, end_pred: torch.Tensor, start_gold: torch.Tensor, end_gold: torch.Tensor):
+    def compile_outputs(
+        self,
+        start_pred: torch.Tensor,
+        end_pred: torch.Tensor,
+        start_gold: torch.Tensor,
+        end_gold: torch.Tensor,
+    ):
         self.all_pred_starts = torch.cat((self.all_pred_starts, start_pred))
         self.all_gold_starts = torch.cat((self.all_gold_starts, start_gold))
         self.all_pred_ends = torch.cat((self.all_pred_ends, end_pred))
@@ -65,7 +69,12 @@ class QAMetrics:
     def final_accuracies(self) -> Dict[str, int]:
         start_acc = self.accuracy(self.all_pred_starts, self.all_gold_starts)
         end_acc = self.accuracy(self.all_pred_ends, self.all_gold_ends)
-        whole_acc = self.acc_whole_question(self.all_pred_starts, self.all_pred_ends, self.all_gold_starts, self.all_gold_ends)
+        whole_acc = self.acc_whole_question(
+            self.all_pred_starts,
+            self.all_pred_ends,
+            self.all_gold_starts,
+            self.all_gold_ends,
+        )
 
         self.reset()
         return {
@@ -73,7 +82,7 @@ class QAMetrics:
             "acc_ends": end_acc.item(),
             "acc_whole_question": whole_acc.item(),
         }
-    
+
     def reset(self):
         self.all_pred_starts = torch.tensor([])
         self.all_gold_starts = torch.tensor([])

@@ -35,11 +35,14 @@ def get_size(object, processed=None):
         size += object.element_size() * object.nelement()
     if hasattr(object, "__dict__"):
         size += get_size(object.__dict__, processed)
-    if hasattr(object, "__iter__") and not isinstance(object, (str, bytes, bytearray, torch.Tensor)):
+    if hasattr(object, "__iter__") and not isinstance(
+        object, (str, bytes, bytearray, torch.Tensor)
+    ):
         # pylint: disable=consider-using-generator
         size += sum([get_size(i, processed) for i in object])
 
     return size
+
 
 def convert_byte_unit(bytes: int) -> str:
     if bytes < 1024:

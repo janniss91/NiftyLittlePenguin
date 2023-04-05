@@ -15,7 +15,13 @@ class QADataset(IterableDataset):
     """
     The dataset is implemented as iterable dataset to work on machines with small memory.
     """
-    def __init__(self, data_encoder: QADataEncoder, tokenizer: PreTrainedTokenizerFast, split: str):
+
+    def __init__(
+        self,
+        data_encoder: QADataEncoder,
+        tokenizer: PreTrainedTokenizerFast,
+        split: str,
+    ):
         self.data_encoder = data_encoder
         self.tokenizer = tokenizer
         self.split = split
@@ -27,7 +33,11 @@ class QADataset(IterableDataset):
 
 class SQuAD_Dataset(QADataset):
     def __init__(
-        self, data_encoder: SQuADEncoder, tokenizer: BertTokenizerFast, split: str, max_buckets: int = 1_000_000
+        self,
+        data_encoder: SQuADEncoder,
+        tokenizer: BertTokenizerFast,
+        split: str,
+        max_buckets: int = 1_000_000,
     ):
         super().__init__(data_encoder, tokenizer, split)
         self.max_buckets = max_buckets
@@ -77,10 +87,14 @@ class SQuAD_Dataset(QADataset):
                 )[:model_max_length]
             )
             token_type_ids.append(
-                F.pad(inp["token_type_ids"].squeeze(), (0, max_len - length), value=1)[:model_max_length]
+                F.pad(inp["token_type_ids"].squeeze(), (0, max_len - length), value=1)[
+                    :model_max_length
+                ]
             )
             attention_mask.append(
-                F.pad(inp["attention_mask"].squeeze(), (0, max_len - length), value=1)[:model_max_length]
+                F.pad(inp["attention_mask"].squeeze(), (0, max_len - length), value=1)[
+                    :model_max_length
+                ]
             )
 
         input_ids = torch.stack(input_ids)
@@ -93,6 +107,8 @@ class SQuAD_Dataset(QADataset):
             "attention_mask": attention_mask.long(),
         }
 
-        assert input_ids.shape[1] <= model_max_length, f"Input ids have shape {input_ids.shape[1]}, which is too long."
+        assert (
+            input_ids.shape[1] <= model_max_length
+        ), f"Input ids have shape {input_ids.shape[1]}, which is too long."
 
         return inputs

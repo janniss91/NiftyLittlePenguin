@@ -9,11 +9,11 @@ RUN apt-get update && apt-get install -y python3.8 python3-distutils python3-pip
 WORKDIR /nlp
 COPY . .
 
-RUN curl -sSL https://install.python-poetry.org | python3 -
-# Add a soft link so that poetry can find the python3 interpreter.
-RUN ln -s /usr/bin/python3 /usr/bin/python
-
-# Make sure poetry is on the path and install dependencies
-RUN export PATH="/root/.local/bin:$PATH" && poetry install
+RUN curl -sSL https://install.python-poetry.org | python3 - && \
+    # Add a soft link so that poetry can find the python3 interpreter.
+    ln -s /usr/bin/python3 /usr/bin/python && \
+    # Make sure poetry is on the path and install dependencies
+    export PATH="/root/.local/bin:$PATH" && \
+    poetry install --without dev
 
 ENTRYPOINT [ "/bin/bash", "entrypoint.sh" ]

@@ -33,7 +33,7 @@ class QADataEncoder(ABC):
     @abstractmethod
     def store_encodings(self):
         raise NotImplementedError
-    
+
     @abstractmethod
     def load_encodings(self):
         raise NotImplementedError
@@ -53,7 +53,7 @@ class SQuADEncoding:
     token_type_ids: torch.Tensor
     attention_mask: torch.Tensor
     # This must be the wordpiece start and end.
-    answer_offsets: List[torch.Tensor]
+    answer_offsets: Optional[List[torch.Tensor]] = None
 
 
 class SQuADEncoder(QADataEncoder):
@@ -76,9 +76,12 @@ class SQuADEncoder(QADataEncoder):
 
     def encodings_exist(self):
         return os.path.exists(self.enc_path)
-    
+
     def buckets_exist(self):
-        return os.path.exists(self.enc_bucket_dir) and len(os.listdir(self.enc_bucket_dir)) > 0
+        return (
+            os.path.exists(self.enc_bucket_dir)
+            and len(os.listdir(self.enc_bucket_dir)) > 0
+        )
 
     def store_encodings(self):
         with open(self.enc_path, "wb") as f:
@@ -112,8 +115,10 @@ class SQuADEncoder(QADataEncoder):
 
     def get_num_buckets(self) -> int:
         return len(os.listdir(self.enc_bucket_dir))
-    
-    def get_buckets(self, max_buckets: int = 1_000_000) -> Iterator[List[SQuADEncoding]]:
+
+    def get_buckets(
+        self, max_buckets: int = 1_000_000
+    ) -> Iterator[List[SQuADEncoding]]:
         """
         Max buckets is used to limit the number of buckets that are loaded.
         The default is 1_000_000, which is always higher than the true number of buckets.
@@ -123,12 +128,11 @@ class SQuADEncoder(QADataEncoder):
 
     def batch_encode(self, data: List[SQuADInstance]):
         print("Encoding data...")
-        self.encodings = [
-            self.encode(squad_instance)
-            for squad_instance in tqdm(data)
-        ]
+        self.encodings = [self.encode(squad_instance) for squad_instance in tqdm(data)]
         # Remove None values.
-        self.encodings = [encoding for encoding in self.encodings if encoding is not None]
+        self.encodings = [
+            encoding for encoding in self.encodings if encoding is not None
+        ]
 
         if self.store_enc:
             if self.store_buckets:
@@ -171,32 +175,38 @@ class SQuADEncoder(QADataEncoder):
         mapper = QAOffsetMapper()
         answer_offsets = []
 
-        assert len(squad_instance.answers) == len(
-            squad_instance.answer_starts
-        ), "The number of answers and answer starts must be the same."
+        if squad_instance.answers is not None:
+            assert len(squad_instance.answers) == len(
+                squad_instance.answer_starts
+            ), "The number of answers and answer starts must be the same."
 
-        for answer, answer_start in zip(
-            squad_instance.answers, squad_instance.answer_starts
-        ):
-            # The context offset_mapping is 3-dimensional so the first dimension is removed by indexing.
-            context_offsets = mapper.map(
-                encoded_context["offset_mapping"][0], answer_start, answer=answer
-            )
-            # Some answers in the data are incomplete words. The answer is ignored in this case.
-            try:
-                start, end = mapper.add_question_offsets(context_offsets, question_len)
-            except TypeError:
-                continue
+            for answer, answer_start in zip(
+                squad_instance.answers, squad_instance.answer_starts
+            ):
+                # The context offset_mapping is 3-dimensional so the first dimension is removed by indexing.
+                context_offsets = mapper.map(
+                    encoded_context["offset_mapping"][0], answer_start, answer=answer
+                )
+                # Some answers in the data are incomplete words. The answer is ignored in this case.
+                try:
+                    start, end = mapper.add_question_offsets(
+                        context_offsets, question_len
+                    )
+                except TypeError:
+                    continue
 
-            # If the answer is outside of the model capacity, the sample is ignored.
-            if end >= MAX_LENGTH:
-                continue
+                # If the answer is outside of the model capacity, the sample is ignored.
+                if end >= MAX_LENGTH:
+                    continue
 
-            answer_offsets.append((start, end))
+                answer_offsets.append((start, end))
 
-        # If all answers have been ignored, no encoding is returned.
-        if len(answer_offsets) == 0:
-            return None
+            # If all answers have been ignored, no encoding is returned.
+            if len(answer_offsets) == 0:
+                return None
+        # For inference code there are no answers.
+        else:
+            answer_offsets = None
 
         encoding = SQuADEncoding(
             input_ids=input_ids,

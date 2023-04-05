@@ -47,15 +47,23 @@ def run():
     train_loader = DataLoader(
         train_dataset, batch_size=BATCH_SIZE, collate_fn=train_dataset.collate
     )
-    dev_loader = DataLoader(dev_dataset, batch_size=BATCH_SIZE, collate_fn=dev_dataset.collate)
+    dev_loader = DataLoader(
+        dev_dataset, batch_size=BATCH_SIZE, collate_fn=dev_dataset.collate
+    )
 
     qa_model = LitQABert()
     device = "gpu" if torch.cuda.is_available() else "cpu"
     # If validation should be done more than once per epoch, the dataset cannot be iterable.
-    trainer = pl.Trainer(log_every_n_steps=LOG_INTERVAL, max_epochs=MAX_EPOCHS, accelerator=device, val_check_interval=VAL_INTERVAL)
+    trainer = pl.Trainer(
+        log_every_n_steps=LOG_INTERVAL,
+        max_epochs=MAX_EPOCHS,
+        accelerator=device,
+        val_check_interval=VAL_INTERVAL,
+    )
     trainer.fit(
         model=qa_model, train_dataloaders=train_loader, val_dataloaders=dev_loader
     )
+
 
 if __name__ == "__main__":
     run()

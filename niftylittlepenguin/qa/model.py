@@ -28,7 +28,9 @@ class LitQABert(pl.LightningModule):
 
         return logits
 
-    def training_step(self, batch: Tuple[Dict[str, torch.Tensor], torch.Tensor], batch_idx: int) -> torch.Tensor:
+    def training_step(
+        self, batch: Tuple[Dict[str, torch.Tensor], torch.Tensor], batch_idx: int
+    ) -> torch.Tensor:
         loss, accuracies = self._step(batch, "train")
         self.n_train_steps += 1
 
@@ -39,21 +41,23 @@ class LitQABert(pl.LightningModule):
         self.print_metrics(accuracies, "train")
 
         return loss
-    
-    def validation_step(self, batch: Tuple[Dict[str, torch.Tensor], torch.Tensor], batch_idx: int) -> torch.Tensor:
+
+    def validation_step(
+        self, batch: Tuple[Dict[str, torch.Tensor], torch.Tensor], batch_idx: int
+    ) -> torch.Tensor:
         # TODO: Store model checkpoints.
         loss, accuracies = self._step(batch, "dev")
 
         self.n_dev_steps += 1
-        self.log(
-            "dev_loss", loss, on_epoch=True, prog_bar=True, logger=False
-        )
+        self.log("dev_loss", loss, on_epoch=True, prog_bar=True, logger=False)
         self.log_dict(accuracies, on_step=True)
         self.print_metrics(accuracies, "dev")
-        
+
         return loss
 
-    def _step(self, batch: Tuple[Dict[str, torch.Tensor], torch.Tensor], split) -> torch.Tensor:
+    def _step(
+        self, batch: Tuple[Dict[str, torch.Tensor], torch.Tensor], split
+    ) -> torch.Tensor:
         inputs, labels = batch
         logits = self(inputs)
 
@@ -70,19 +74,26 @@ class LitQABert(pl.LightningModule):
         end_loss = self.loss_fn(end_logits, ends)
         loss = start_loss + end_loss
 
-        accuracies = self.qa_metrics.accuracies(start_logits.cpu(), end_logits.cpu(), starts.cpu(), ends.cpu(), split)
+        accuracies = self.qa_metrics.accuracies(
+            start_logits.cpu(), end_logits.cpu(), starts.cpu(), ends.cpu(), split
+        )
 
         return loss, accuracies
-    
+
     def on_validation_end(self):
         print("Total validation accuracy:\n")
         print(self.qa_metrics.final_accuracies())
-        
-    
+
     def print_metrics(self, accuracies: Dict[str, torch.Tensor], split: str):
-        if split == "train" and self.n_train_steps and self.n_train_steps % LOG_INTERVAL == 0:
+        if (
+            split == "train"
+            and self.n_train_steps
+            and self.n_train_steps % LOG_INTERVAL == 0
+        ):
             print(f"\nTrain metrics: {accuracies}")
-        elif split == "dev" and self.n_dev_steps and self.n_dev_steps % LOG_INTERVAL == 0:
+        elif (
+            split == "dev" and self.n_dev_steps and self.n_dev_steps % LOG_INTERVAL == 0
+        ):
             print(f"\nDev metrics: {accuracies}")
 
     def configure_optimizers(self):

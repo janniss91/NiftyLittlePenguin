@@ -4,3 +4,4 @@ data/*
 */.ipynb_checkpoints/*
 encodings/*
 lightning_logs/*
+inference_results/*
